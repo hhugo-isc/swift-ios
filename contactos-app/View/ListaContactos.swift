@@ -81,6 +81,8 @@ extension ListaContactos: NuevoContactoDelegate {
     
     func eliminar(){
         self.contactosVM.eliminarContacto(conIndice: self.rowIndex)
+        self.modoEdicion = false
+        self.rowIndex = -1
     }
     
     func cancelar(){
