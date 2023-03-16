@@ -12,6 +12,7 @@ class TodoListVC: UITableViewController {
 
     var itemArray: [Item] = []
     let defaults = UserDefaults.standard
+    let filePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Item.plist")
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -20,11 +21,19 @@ class TodoListVC: UITableViewController {
         itemArray.append(Item(title: "Eat", done: false))
         itemArray.append(Item(title: "Sleep", done: false))
         
-        // Do any additional setup after loading the view.
-        if let items = defaults.array(forKey: "ToDoListArray") as? [Item] {
-            itemArray = items
+        self.loadItems()
+    }
+    
+    func loadItems(){
+        if let data = try? Data(contentsOf: self.filePath!){
+            let decoder = PropertyListDecoder()
+            do {
+                    
+                itemArray = try decoder.decode([Item].self, from: data)
+            }catch {
+                    print("Error extracting data")
+            }
         }
-        
     }
     
     
@@ -36,8 +45,8 @@ class TodoListVC: UITableViewController {
         let action = UIAlertAction(title: "Add item", style: .default) { action in
             self.itemArray.append(Item(title:textField.text!, done: false))
             
-            self.defaults.set(self.itemArray, forKey: "ToDoListArray")
-            self.tableView.reloadData()
+            
+            self.saveItems()
         }
         
         alert.addTextField{(alertTextField) in
@@ -66,9 +75,21 @@ class TodoListVC: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
-        tableView.reloadData()
+        saveItems()
         tableView.deselectRow(at: indexPath, animated: true)
     }
 
+    func saveItems(){
+        let encoder = PropertyListEncoder()
+        do {
+            let data = try encoder.encode(self.itemArray)
+            try data.write(to: self.filePath!)
+        }catch {
+            print("")
+        }
+        //self.defaults.set(self.itemArray, forKey: "ToDoListArray")
+        self.tableView.reloadData()
+    }
+    
 }
 
